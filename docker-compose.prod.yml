@@ -1,0 +1,7 @@
+version: '3.7'
+
+services:
+  test-biocard-server:
+    build:
+      target: production
+    command: node build/index.js

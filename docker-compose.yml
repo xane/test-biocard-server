@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+  mongodb:
+    container_name: db
+    image: mongo
+    restart: always
+    env_file: ./.env
+    #environment:
+    #  MONGO_INITDB_ROOT_USERNAME: $DB_USER
+    #  MONGO_INITDB_ROOT_PASSWORD: $DB_PASS
+    #  MONGO_INITDB_DB: $DB_NAME
+    ports:
+      - $DB_PORT:$DB_PORT
+    volumes:
+      - dbdata6:/data/db
+    networks:
+      - node-network
+  dbload:
+    container_name: install
+    build: ./mongo
+    depends_on:
+      - mongodb
+    networks:
+      - node-network
+  nodejs:
+    container_name: server
+    env_file: ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    environment:
+      - NODE_PORT=$JS_PORT
+      - MONGODB_URL=mongodb://mongodb:$DB_PORT/drivers
+    volumes:
+      - ./src:/home/node/app/src
+      - ./nodemon.json:/home/node/app/nodemon.json
+    expose:
+      - $JS_PORT
+    ports:
+      - $JS_PORT:$JS_PORT
+    networks:
+      - node-network
+    command: npm run dev
+
+volumes:
+  dbdata6:
+
+networks:
+  node-network:
+    driver: bridge
